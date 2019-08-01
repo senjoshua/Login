@@ -2,34 +2,72 @@ var express = require("express");
 var app = express();
 var port = 3000;
 var bodyParser = require('body-parser');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(bodyParser.json()); 
+app.use(express.static('public')); 
+app.use(bodyParser.urlencoded({ 
+    extended: true
+})); 
 
 var mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost:27017/login");
-
-// mongodb+srv://<username>:<password>@login-qd6kf.mongodb.net/test?retryWrites=true&w=majority
-
-var nameSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String
-});
-var User = mongoose.model("User", nameSchema);
+var db=mongoose.connection; 
+db.on('error', console.log.bind(console, "connection error")); 
+db.once('open', function(callback){ 
+    console.log("connection succeeded"); 
+}) 
 
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
-app.post("/addname", (req, res) => {
-    var myData = new User(req.body);
-    myData.save()
-        .then(item => {
-            res.send("Name saved to database");
-        })
-        .catch(err => {
-            res.status(400).send("Unable to save to database");
-        });
+app.get("/home", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+});
+
+var UserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true
+    }
+  });
+
+  mongoose.model('User', UserSchema);
+
+app.post("/signup", (req, res) => {
+    var name = request.body.username;
+    var email = request.body.email;
+    var password = request.body.password;
+    
+    var data = { 
+        "name": name, 
+        "email":email, 
+        "password":password
+    } 
+
+    db.collection('users').insertOne(data,function(err, collection){ 
+        if (err) throw err; 
+        console.log("User added successfully");  
+    }); 
+
+    // return res.redirect("profile.html"); 
+});
+
+app.post("/signin", (req, res) => {
+    var email = request.body.email;
+    var password = request.body.password;
+
 });
 
 app.listen(port, () => {
