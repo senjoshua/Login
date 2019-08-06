@@ -3,12 +3,17 @@ var app = express();
 var port = 3000;
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 
 app.use(bodyParser.json()); 
 app.use(express.static('public')); 
 app.use(bodyParser.urlencoded({ 
     extended: true
 })); 
+
+app.use(cookieParser());
+app.use(session({secret: "secret"}));
 
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/Login");
@@ -60,6 +65,8 @@ app.post("/signup", (req, res) => {
         "email":email, 
         "password":hash
       });
+
+      req.session.user = data;
   
       data.save(function(error) {
         console.log("User added successfully");
@@ -71,6 +78,7 @@ app.post("/signup", (req, res) => {
     });
     
     return res.redirect("profile.html"); 
+    res.render('profile.html',{name:name});
 });
 
 app.post("/signin", (req, res) => {
@@ -78,16 +86,17 @@ app.post("/signin", (req, res) => {
     var password = req.body.password;
 
     db.collection('users').findOne({ 
-        'email': req.body.email}, function(err, user) {
+        'email': email}, function(err, user) {
         // if (err) throw err; 
         bcrypt.compare(password, user.password, function(err, result) {
           if (err) throw err; 
           
           if(result){
             return res.redirect("profile.html");
+            res.render('profile.html',{name:name});
+            //req.session.user.name
           }
           else{
-
             res.redirect("/");
           }
 
