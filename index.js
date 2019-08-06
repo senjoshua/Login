@@ -58,7 +58,7 @@ app.post("/signup", (req, res) => {
       var data = new User({ 
         "name": name, 
         "email":email, 
-        "password":password
+        "password":hash
       });
   
       data.save(function(error) {
@@ -80,19 +80,19 @@ app.post("/signin", (req, res) => {
     db.collection('users').findOne({ 
         'email': req.body.email}, function(err, user) {
         // if (err) throw err; 
-        bcrypt.compare(user.password, password, function(err, isMatch) {
+        bcrypt.compare(password, user.password, function(err, result) {
           if (err) throw err; 
           
-          return res.redirect("profile.html");
+          if(result){
+            return res.redirect("profile.html");
+          }
+          else{
+
+            res.redirect("/");
+          }
+
         })
 
-          // if (user) {
-          //   return res.redirect("profile.html");
-          // } 
-          // else {
-          //   //   alert("Incorrect login info!");
-          //     return res.redirect("/");
-          // }
        })
 
 });
