@@ -32,6 +32,10 @@ app.post("/logout", (req, res) => {
     res.redirect("/");
 });
 
+app.get("/user", (req, res) => {
+  res.json({name : req.session.user});
+});
+
 var UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -65,8 +69,6 @@ app.post("/signup", (req, res) => {
         "email":email, 
         "password":hash
       });
-
-      req.session.user = data;
   
       data.save(function(error) {
         console.log("User added successfully");
@@ -76,9 +78,10 @@ app.post("/signup", (req, res) => {
       });
       
     });
+
+    req.session.user = name;
     
     return res.redirect("profile.html"); 
-    res.render('profile.html',{name:name});
 });
 
 app.post("/signin", (req, res) => {
@@ -92,9 +95,9 @@ app.post("/signin", (req, res) => {
           if (err) throw err; 
           
           if(result){
-            return res.redirect("profile.html");
-            res.render('profile.html',{name:name});
-            //req.session.user.name
+            req.session.user = user.name;
+            // res.send(req.session.user = user.name);
+            res.redirect("profile.html");
           }
           else{
             res.redirect("/");
